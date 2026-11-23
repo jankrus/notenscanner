@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notenscanner</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header id="bar">
+  <div class="row">
+    <span class="brand">Notenscanner</span>
+
+    <div class="grp">
+      <button id="btnOpen" class="primary" title="PDF, Bild oder MusicXML öffnen (Strg+O)">Öffnen …</button>
+      <div class="menu">
+        <button id="btnExport" disabled>Speichern ▾</button>
+        <div class="menu-items" id="exportMenu">
+          <button data-export="musicxml">MusicXML (.musicxml)</button>
+          <button data-export="midi">MIDI (.mid)</button>
+          <button data-export="print">Drucken / als PDF …</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grp">
+      <button id="btnUndo" disabled title="Rückgängig (Strg+Z)">↶</button>
+      <button id="btnRedo" disabled title="Wiederholen (Strg+Y)">↷</button>
+    </div>
+
+    <div class="grp">
+      <button id="btnPlay" disabled title="Abspielen / Stopp (Leertaste)">▶ Abspielen</button>
+      <label class="inline" title="Tempo in Schlägen pro Minute">Tempo
+        <input id="bpm" type="number" min="20" max="300" step="1" value="100">
+      </label>
+      <select id="instrument" title="Klang">
+        <option value="piano">Klavier</option>
+        <option value="organ">Orgel</option>
+        <option value="flute">Flöte</option>
+        <option value="pluck">Zupfklang</option>
+      </select>
+      <div class="menu" id="mixWrap">
+        <button id="btnMix" disabled title="Stimmen einzeln hören, stumm schalten oder lauter/leiser stellen">Stimmen ▾</button>
+        <div class="menu-items mixer" id="mixMenu"></div>
+      </div>
+    </div>
+
+    <div class="grp">
+      <label class="inline">Transponieren
+        <select id="interval">
+          <option value="1">kleine Sekunde (1 Halbton)</option>
+          <option value="2" selected>große Sekunde (2)</option>
+          <option value="3">kleine Terz (3)</option>
+          <option value="4">große Terz (4)</option>
+          <option value="5">Quarte (5)</option>
+          <option value="6">Tritonus (6)</option>
+          <option value="7">Quinte (7)</option>
+          <option value="8">kleine Sexte (8)</option>
+          <option value="9">große Sexte (9)</option>
+          <option value="10">kleine Septime (10)</option>
+          <option value="11">große Septime (11)</option>
+          <option value="12">Oktave (12)</option>
+        </select>
+      </label>
+      <button id="btnTrDown" disabled title="Abwärts transponieren">▼ tiefer</button>
+      <button id="btnTrUp" disabled title="Aufwärts transponieren">▲ höher</button>
+    </div>
+
+    <div class="grp">
+      <select id="chordStyle" title="Schreibweise der Akkordsymbole"></select>
+    </div>
+
+    <div class="grp right">
+      <button id="btnOriginal" disabled title="Original-Scan daneben anzeigen">Original</button>
+      <button id="btnZoomOut" title="Verkleinern">−</button>
+      <span id="zoomLabel">100 %</span>
+      <button id="btnZoomIn" title="Vergrößern">+</button>
+      <button id="btnHelp" title="Tastenkürzel">?</button>
+    </div>
+  </div>
+
+  <div class="row edit" id="editRow">
+    <div class="grp" title="Notenwert der markierten Note">
+      <span class="lbl">Wert</span>
+      <button data-dur="whole" title="Ganze (1)">1/1</button>
+      <button data-dur="half" title="Halbe (2)">1/2</button>
+      <button data-dur="quarter" title="Viertel (3)">1/4</button>
+      <button data-dur="eighth" title="Achtel (4)">1/8</button>
+      <button data-dur="16th" title="Sechzehntel (5)">1/16</button>
+      <button data-dur="32nd" title="Zweiunddreißigstel (6)">1/32</button>
+      <button data-act="dot" title="Punktierung an/aus (.)">•</button>
+    </div>
+    <div class="grp" title="Tonhöhe der markierten Note">
+      <span class="lbl">Tonhöhe</span>
+      <button data-act="up" title="Einen Ton höher (↑)">↑</button>
+      <button data-act="down" title="Einen Ton tiefer (↓)">↓</button>
+      <button data-act="sharp" title="Halbton höher (+)">♯</button>
+      <button data-act="flat" title="Halbton tiefer (-)">♭</button>
+      <button data-act="natural" title="Auflösen (0)">♮</button>
+      <button data-act="octUp" title="Oktave höher (Strg+↑)">8va</button>
+      <button data-act="octDown" title="Oktave tiefer (Strg+↓)">8vb</button>
+    </div>
+    <div class="grp">
+      <span class="lbl">Note</span>
+      <button data-act="insert" title="Note dahinter einfügen (N)">+ Note</button>
+      <button data-act="chord" title="Akkordton hinzufügen (K)">+ Akkordton</button>
+      <button data-act="rest" title="In Pause umwandeln (P)">Pause</button>
+      <button data-act="tie" title="Haltebogen zur nächsten gleichen Note an/aus (T)">Bogen</button>
+      <button data-act="delete" title="Löschen (Entf)">Löschen</button>
+    </div>
+    <div class="grp" title="Vortragszeichen und Dynamik der markierten Note">
+      <span class="lbl">Ausdruck</span>
+      <button data-mark="staccato" title="Staccato (kurz)">stacc.</button>
+      <button data-mark="accent" title="Akzent (betont)">Akzent</button>
+      <button data-mark="tenuto" title="Tenuto (ausgehalten)">ten.</button>
+      <button data-mark="fermata" title="Fermate">Fermate</button>
+      <button data-wedge="crescendo" title="Crescendo-Gabel: ab der markierten Note, danach das Ende anklicken">Cresc. &lt;</button>
+      <button data-wedge="diminuendo" title="Decrescendo-Gabel: ab der markierten Note, danach das Ende anklicken">Decresc. &gt;</button>
+      <select id="dynSel" title="Dynamik ab der markierten Note">
+        <option value="">Dynamik …</option>
+        <option value="ppp">ppp</option><option value="pp">pp</option><option value="p">p</option>
+        <option value="mp">mp</option><option value="mf">mf</option><option value="f">f</option>
+        <option value="ff">ff</option><option value="fff">fff</option><option value="sfz">sfz</option>
+        <option value="fp">fp</option><option value="-">– entfernen –</option>
+      </select>
+    </div>
+    <div class="grp" title="Akkordsymbol und Liedtext der markierten Note">
+      <span class="lbl">Text</span>
+      <input id="chordIn" type="text" placeholder="Akkord" size="7" autocomplete="off"
+             title="Akkord an der markierten Note, z. B. Am, Fis7, Hm, B, D/Fis. Enter übernimmt, leer = löschen.">
+      <input id="lyricIn" type="text" placeholder="Silbe" size="9" autocomplete="off"
+             title="Liedtext der markierten Note. schrei- = getrennt, Licht_ = Haltelinie. Enter oder Leertaste übernimmt und springt zur nächsten Note.">
+      <select id="verseSel" title="Strophe">
+        <option value="1">1.</option><option value="2">2.</option><option value="3">3.</option>
+        <option value="4">4.</option><option value="5">5.</option>
+      </select>
+    </div>
+    <div class="grp">
+      <span class="lbl">Stück</span>
+      <select id="keySel" title="Tonart (Vorzeichen) für das ganze Stück setzen"></select>
+      <select id="timeSel" title="Taktart für das ganze Stück setzen">
+        <option value="">Taktart …</option>
+        <option>2/4</option><option>3/4</option><option>4/4</option><option>5/4</option>
+        <option>6/4</option><option>2/2</option><option>3/8</option><option>6/8</option>
+        <option>9/8</option><option>12/8</option>
+      </select>
+      <label class="inline check"><input type="checkbox" id="chkBad" checked> Taktfehler markieren</label>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <aside id="origPane" hidden></aside>
+  <section id="scorePane">
+    <div id="welcome">
+      <div id="drop">
+        <h1>Noten einscannen</h1>
+        <p>PDF oder Foto/Scan (PNG, JPG) hierher ziehen<br>oder auf <b>Öffnen …</b> klicken.</p>
+        <p class="small">Mehrere Fotos gleichzeitig auswählen = mehrere Seiten eines Stücks.<br>
+        Auch vorhandene MusicXML- und MXL-Dateien lassen sich öffnen.</p>
+        <button id="btnOpen2" class="primary big">Datei auswählen</button>
+        <p class="small"><a href="#" id="lnkDemo">Beispielnoten laden</a></p>
+      </div>
+    </div>
+    <div id="pages"></div>
+  </section>
+</main>
+
+<footer id="status">
+  <span id="statusSel">Keine Noten geladen.</span>
+  <span id="statusMsg"></span>
+</footer>
+
+<div id="overlay" hidden>
+  <div class="box">
+    <div class="spinner"></div>
+    <h2 id="ovTitle">Noten werden erkannt …</h2>
+    <p id="ovMsg"></p>
+    <div class="progress"><div id="ovBar"></div></div>
+    <p class="small" id="ovTime"></p>
+    <button id="ovCancel">Abbrechen</button>
+  </div>
+</div>
+
+<div id="help" hidden>
+  <div class="box wide">
+    <h2>Bedienung</h2>
+    <p>Eine Note oder Pause anklicken, dann:</p>
+    <table>
+      <tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>Ton höher / tiefer (bleibt in der Tonart)</td></tr>
+      <tr><td><kbd>Strg</kbd>+<kbd>↑</kbd> <kbd>↓</kbd></td><td>Oktave höher / tiefer</td></tr>
+      <tr><td><kbd>+</kbd> <kbd>-</kbd> <kbd>0</kbd></td><td>Halbton höher (♯) / tiefer (♭) / auflösen (♮)</td></tr>
+      <tr><td><kbd>C</kbd> <kbd>D</kbd> <kbd>E</kbd> <kbd>F</kbd> <kbd>G</kbd> <kbd>A</kbd> <kbd>H</kbd></td><td>Ton direkt setzen (<kbd>B</kbd> = b, also erniedrigtes h)</td></tr>
+      <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>vorige / nächste Note markieren</td></tr>
+      <tr><td><kbd>1</kbd> … <kbd>6</kbd></td><td>Ganze, Halbe, Viertel, Achtel, Sechzehntel, Zweiunddreißigstel</td></tr>
+      <tr><td><kbd>.</kbd></td><td>Punktierung an/aus</td></tr>
+      <tr><td><kbd>N</kbd></td><td>Note dahinter einfügen</td></tr>
+      <tr><td><kbd>K</kbd></td><td>Akkordton hinzufügen</td></tr>
+      <tr><td><kbd>P</kbd></td><td>in Pause umwandeln</td></tr>
+      <tr><td><kbd>T</kbd></td><td>Haltebogen an/aus</td></tr>
+      <tr><td>Ausdruck</td><td>Staccato, Akzent, Tenuto, Fermate und Dynamik über die Knöpfe in der Leiste;
+        sie werden beim Abspielen berücksichtigt</td></tr>
+      <tr><td>Akkord</td><td>Note markieren, im Feld „Akkord“ eintippen (z. B. <i>Am</i>, <i>Fis7</i>, <i>Hm</i>, <i>D/Fis</i>), Enter.
+        Leeres Feld + Enter löscht den Akkord.</td></tr>
+      <tr><td>Liedtext</td><td>Note markieren, im Feld „Silbe“ tippen, Enter oder Leertaste springt zur nächsten Note.
+        <i>schrei-</i> trennt zur nächsten Silbe, <i>Licht_</i> zeichnet eine Haltelinie. Shift+Enter geht zurück.</td></tr>
+      <tr><td>Stimmen</td><td>„Stimmen ▾“ neben „Abspielen“: einzelne Stimmen stumm schalten, solo hören oder lauter/leiser stellen.</td></tr>
+      <tr><td>Gabeln</td><td>Note markieren, „Cresc. &lt;“ oder „Decresc. &gt;“ drücken, dann die letzte Note der Gabel anklicken.
+        Erneut drücken entfernt die Gabel.</td></tr>
+      <tr><td><kbd>Entf</kbd></td><td>Note → Pause; Pause oder Akkordton → ganz entfernen</td></tr>
+      <tr><td><kbd>Umschalt</kbd>+<kbd>Entf</kbd></td><td>Note ganz entfernen (Rest des Takts rückt nach)</td></tr>
+      <tr><td><kbd>Leertaste</kbd></td><td>Abspielen ab der markierten Note / Stopp</td></tr>
+      <tr><td><kbd>Strg</kbd>+<kbd>Z</kbd> / <kbd>Y</kbd></td><td>Rückgängig / Wiederholen</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Markierung aufheben</td></tr>
+    </table>
+    <p class="small">Rot hinterlegte Takte enthalten zu viele oder zu wenige Schläge – dort hat sich die
+    Erkennung meist bei einem Notenwert geirrt.</p>
+    <button id="helpClose" class="primary">Schließen</button>
+  </div>
+</div>
+
+<div id="msg" hidden>
+  <div class="box">
+    <h2>Hinweis</h2>
+    <p id="msgText"></p>
+    <button id="msgClose" class="primary">OK</button>
+  </div>
+</div>
+
+<input type="file" id="file" hidden multiple
+       accept=".pdf,.png,.jpg,.jpeg,.bmp,.tif,.tiff,.webp,.xml,.musicxml,.mxl">
+
+<script src="lib/verovio-toolkit-wasm.js"></script>
+<script src="musicxml.js"></script>
+<script src="player.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Arbeitsdateien des Servers (hochgeladene Noten, Zwischenstände)
+data/
+
+# Testdateien
+static/_*
+
+# Editor / System
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
