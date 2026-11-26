@@ -32,7 +32,10 @@ Voraussetzung: Python 3.11 oder neuer (<https://www.python.org/downloads/>).
    sich ein Blick zuerst.
 3. Note anklicken und mit Tasten oder Knöpfen korrigieren (`?` zeigt alle
    Tastenkürzel).
-4. **Transponieren**: Intervall wählen, dann *höher* oder *tiefer*.
+4. **Transponieren**: Intervall wählen und *höher* oder *tiefer* drücken – oder
+   direkt eine Zieltonart unter „… oder nach Tonart“ auswählen. Noten und Akkorde
+   werden mitverschoben. (Die Auswahl „Vorzeichnung korrigieren“ unter *Stück*
+   ist nur für falsch erkannte Vorzeichen da und verschiebt keine Noten.)
 5. **Abspielen** (Leertaste) startet ab der markierten Note.
 6. **Speichern**: MusicXML (für MuseScore, Sibelius, Dorico …), MIDI oder
    Drucken/PDF.
@@ -81,6 +84,10 @@ wieder da.
   werden in der Anzeige ausgeblendet.
 - Über einen Seiten- oder Zeilenumbruch geteilte Takte werden wieder zu einem
   Takt zusammengefügt.
+- Die erkannte Tonart wird mit den Akkordsymbolen gegengeprüft: Passen die Akkorde
+  deutlich besser zu einer anderen Vorzeichnung, wird diese korrigiert. Akkorde, bei
+  denen die Texterkennung ein kleines ♭/♯ verloren hat (B statt B♭ in F-Dur), werden
+  ergänzt (`keycheck.py`).
 
 ## Technik
 

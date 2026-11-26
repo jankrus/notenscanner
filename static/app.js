@@ -10,6 +10,7 @@ let doc = null;                     // MusicXML-Dokument
 let fileName = 'noten';
 let selId = null;
 const mix = new Map();             // Stimmen-Mischpult: Spur -> { mute, solo, vol }
+let quiet = false;                 // beim Wiederherstellen keine Fehlermeldungen zeigen
 let wedgePick = null;              // { type, from }: Gabel wird gerade gesetzt, Ende wird angeklickt
 let undoStack = [], redoStack = [];
 let zoom = 1;
@@ -46,10 +47,14 @@ const verovioStart = Date.now();
 })();
 
 function restore() {
+  quiet = true;
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
-    if (saved && saved.xml) loadXml(saved.xml, saved.name || 'noten', true);
+    if (saved && saved.xml && !loadXml(saved.xml, saved.name || 'noten', true)) {
+      localStorage.removeItem(STORE_KEY);    // nicht darstellbarer alter Stand: verwerfen
+    }
   } catch (e) { /* kein gespeicherter Stand */ }
+  quiet = false;
 }
 function save() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify({ xml: MX.serialize(doc), name: fileName })); }
@@ -77,12 +82,15 @@ try { chordStyle = localStorage.getItem('notenscanner.chords') || 'de'; } catch 
 })();
 
 function fillKeySelect() {
-  const sel = $('keySel');
   for (let f = -7; f <= 7; f++) {
     const o = document.createElement('option');
     o.value = f;
-    o.textContent = MX.keyName(f);
-    sel.appendChild(o);
+    o.textContent = 'Vorzeichnung korrigieren: ' + MX.keyName(f);
+    $('keySel').appendChild(o);
+    const t = document.createElement('option');
+    t.value = f;
+    t.textContent = MX.keyName(f);
+    $('toKey').appendChild(t);
   }
 }
 fillKeySelect();
@@ -294,7 +302,11 @@ function updateUi() {
   }
   $('dynSel').value = note ? MX.getDynamic(note) : '';
   if ($('dynSel').selectedIndex < 0) $('dynSel').value = '';
-  $('keySel').disabled = $('timeSel').disabled = !has;
+  $('keySel').disabled = $('timeSel').disabled = $('toKey').disabled = !has;
+  $('toKey').value = '';
+  if (has) for (const o of $('toKey').options) if (o.value !== '') {
+    o.textContent = MX.keyName(+o.value) + (+o.value === MX.mainKey(doc) ? '  ← aktuell' : '');
+  }
   if (has) {
     $('keySel').value = Math.max(-7, Math.min(7, MX.mainKey(doc)));
     const t = MX.mainTime(doc);
@@ -311,6 +323,7 @@ function updateUi() {
   }
 }
 function notify(text) {
+  if (quiet) return;
   $('msgText').textContent = text;
   $('msg').hidden = false;
   $('msgClose').focus();
@@ -526,6 +539,16 @@ $('keySel').onchange = e => {
   const f = parseInt(e.target.value, 10);
   edit(() => MX.setKey(doc, f), { global: true });
   e.target.blur();
+  flash('Nur die Vorzeichnung wurde geändert, die Noten bleiben auf ihren Linien. '
+    + 'Zum Transponieren „Transponieren“ oben verwenden. (Strg+Z macht es rückgängig.)');
+};
+$('toKey').onchange = e => {
+  const v = e.target.value;
+  e.target.blur();
+  if (v === '') return;
+  let key;
+  edit(() => { key = MX.transposeToKey(doc, parseInt(v, 10)); }, { global: true });
+  if (key != null) flash('Transponiert. Neue Tonart: ' + MX.keyName(key));
 };
 $('timeSel').onchange = e => {
   const m = /^(\d+)\/(\d+)$/.exec(e.target.value);

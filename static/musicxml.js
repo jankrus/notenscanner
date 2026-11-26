@@ -527,6 +527,24 @@ const MX = (() => {
       if (up < Math.abs(k + f) && up <= down) { d += 1; f -= 12; }
       else if (down < Math.abs(k + f)) { d -= 1; f += 12; }
     }
+    return applyTranspose(doc, d, c, f);
+  }
+
+  /** Transponiert in eine Zieltonart (Vorzeichnung), auf dem kürzesten Weg nach oben oder unten.
+      Die Schreibweise folgt genau der gewählten Tonart (Fis-Dur bleibt Fis-Dur, Ges-Dur Ges-Dur). */
+  function transposeToKey(doc, target) {
+    const k = mainKey(doc);
+    if (target === k) return k;
+    const tonicStep = x => mod(4 * x, 7);     // C=0, G=4, D=1, F=3 …
+    const tonicPc = x => mod(7 * x, 12);
+    let d = mod(tonicStep(target) - tonicStep(k), 7);
+    let c = mod(tonicPc(target) - tonicPc(k), 12);
+    if (c > 6 || (c === 6 && d > 3)) { d -= 7; c -= 12; }
+    return applyTranspose(doc, d, c, target - k);
+  }
+
+  /** d = Stufen auf der Notenlinie, c = Halbtöne, f = Änderung der Vorzeichnung (Quinten). */
+  function applyTranspose(doc, d, c, f) {
     for (const note of doc.querySelectorAll('note')) {
       const p = getPitch(note);
       if (!p || p.step < 0) continue;
@@ -1355,7 +1373,7 @@ const MX = (() => {
     wedgeAt, removeWedge, setWedge, parseChordText, harmonyText, setHarmony,
     lyricText, setLyric, nextSingable, tracks, trackKeysOf,
     parse, serialize, byId, getPitch, midi, isRest, hasTie, chordGroup, context, mainKey, mainTime,
-    transpose, setKey, setTime, badMeasures, describe, keyName, neighbourId,
+    transpose, transposeToKey, setKey, setTime, badMeasures, describe, keyName, neighbourId,
     movePitch, moveOctave, alterPitch, setStep, setValue, insertAfter, addChordTone,
     toRest, deleteNote, toggleTie,
   };

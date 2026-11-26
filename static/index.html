@@ -65,6 +65,9 @@
       </label>
       <button id="btnTrDown" disabled title="Abwärts transponieren">▼ tiefer</button>
       <button id="btnTrUp" disabled title="Aufwärts transponieren">▲ höher</button>
+      <select id="toKey" disabled title="Das ganze Stück in diese Tonart transponieren (Noten und Akkorde)">
+        <option value="">… oder nach Tonart</option>
+      </select>
     </div>
 
     <div class="grp">
@@ -138,7 +141,7 @@
     </div>
     <div class="grp">
       <span class="lbl">Stück</span>
-      <select id="keySel" title="Tonart (Vorzeichen) für das ganze Stück setzen"></select>
+      <select id="keySel" title="Nur für Erkennungsfehler: ändert die Vorzeichnung, die Noten bleiben auf ihren Linien. Zum Transponieren „Transponieren“ oben verwenden."></select>
       <select id="timeSel" title="Taktart für das ganze Stück setzen">
         <option value="">Taktart …</option>
         <option>2/4</option><option>3/4</option><option>4/4</option><option>5/4</option>

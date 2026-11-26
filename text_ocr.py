@@ -220,6 +220,7 @@ def normalize_chord(text: str) -> str:
     """
     t = text.strip().replace("♯", "#").replace("♭", "b").replace("♮", "")
     t = t.replace("\\", "").replace("|", "")
+    t = t.replace("Sus", "sus").replace("$us", "sus").replace("SUS", "sus")
 
     def fix(m: re.Match) -> str:
         root = m.group(1)
@@ -528,9 +529,11 @@ def annotate_page(systems: list[ET.Element], boxes: list[StaffBox], words: list[
         for w in sorted(ws, key=lambda w: w.left):
             harmony = parse_chord(w.text)
             anchor_x = w.left + min(w.right - w.left, 2 * unit) / 2
-            ev = min(events, key=lambda e: abs(e.x - anchor_x))
-            if abs(ev.x - anchor_x) > 6 * unit or id(ev.note) in used:
+            # nächstgelegene Note/Pause, die noch keinen Akkord hat
+            free = [e for e in events if id(e.note) not in used and abs(e.x - anchor_x) <= 6 * unit]
+            if not free:
                 continue
+            ev = min(free, key=lambda e: abs(e.x - anchor_x))
             used.add(id(ev.note))
             ET.SubElement(harmony, "staff").text = str(box.staff)   # über dieser Zeile steht er
             children = list(ev.measure)

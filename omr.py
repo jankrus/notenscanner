@@ -38,6 +38,7 @@ from homr.transformer.configs import Config
 from homr.transformer.vocabulary import EncodedSymbol
 
 import hairpins
+import keycheck
 import text_ocr
 
 NOTE_ORDER = [
@@ -562,6 +563,10 @@ def main() -> int:
     root_systems = add_text(pages)
     systems = [s for s in (System(r) for r in root_systems) if s.units and s.count]
     score = build_score(systems, title)
+    try:
+        keycheck.correct_keys(score, log=eprint)
+    except Exception as exc:  # noqa: BLE001
+        eprint(f"Tonart-Prüfung fehlgeschlagen: {exc}")
     ET.ElementTree(score).write(out_path, encoding="UTF-8", xml_declaration=True)
     eprint("Saved the generated musicxml at " + out_path)
     return 0
